@@ -1,19 +1,24 @@
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, func
+from sqlalchemy import Integer, TIMESTAMP
+from sqlalchemy.sql.schema import Column
+from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 
-class Base(DeclarativeBase):
+class BaseModel(DeclarativeBase):
     __abstarct__ = True
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: int = Column(Integer, primary_key=True, index=True)
 
-    created_at: Mapped[datetime] = mapped_column(default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
+    created_at: datetime = Column(
         TIMESTAMP(timezone=True),
-        default=func.now(),
-        onupdate=func.now()
+        default=datetime.now()
+    )
+    updated_at: datetime = Column(
+        TIMESTAMP(timezone=True),
+        default=datetime.now(),
+        onupdate=datetime.now()
     )
 
     @declared_attr.directive
