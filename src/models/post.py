@@ -8,7 +8,7 @@ from src.models.user import UserModel
 from src.models.base_model import BaseModel
 
 
-class Post(BaseModel):
+class PostModel(BaseModel):
     __tablename__: str = 'posts'
 
     author_id: int = Column(Integer, primary_key=True)

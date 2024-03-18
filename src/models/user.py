@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, Text
+from sqlalchemy import Integer, String, Text, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean
@@ -13,3 +13,4 @@ class UserModel(BaseModel):
     email: str = Column(String(50), unique=True, nullable=False)
     hashed_password: str = Column(String(), nullable=False)
     bio: str = Column(Text, nullable=True)
+    is_active: bool = Column(Boolean, nullable=False, default=False)
