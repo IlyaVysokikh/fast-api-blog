@@ -5,13 +5,13 @@ from fastapi import Depends, HTTPException, status
 
 from sqlalchemy.orm import Session
 
-from jose import jwt
+import jwt
 
-from src.config import pwd_context, settings, TOKEN_ENCODING_ALGORITHM
+from src.config import settings, TOKEN_ENCODING_ALGORITHM, oauth2_scheme
 from src.models.user import UserModel
-from src.repository.session import SessionLocal
-
-
+from src.db.session import SessionLocal
+from src.services.user import get_user_by_username
+from src.schemas.jwt_token import Token, TokenData
 
 
 def get_db():
@@ -22,17 +22,27 @@ def get_db():
         db.close()
 
 
-#TODO Авторизация!!!
-def get_current_user(db: Session = Depends(),
-                     token: str = Depends(),
-                     credentials_exception=HTTPException(
-                         status_code=status.HTTP_401_UNAUTHORIZED,
-                         detail="Could not validate credentials",
-                         headers={
-                             "WWW-Authenticate": "Bearer"
-                         }
-    )):
-    ...
+def get_current_user(
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[TOKEN_ENCODING_ALGORITHM]
+        )
+        username: str = payload.get("sub")
+        token_data = TokenData(username=username)
+    except JWTError:  # pragma: no cover
+        raise credentials_exception
+    user = get_user_by_username(db, username=token_data.username)
+    if user is None:
+        raise credentials_exception
+    return user
 
 
 def get_current_active_user(current_user: UserModel = Depends(get_current_user)):
@@ -42,24 +52,3 @@ def get_current_active_user(current_user: UserModel = Depends(get_current_user))
             detail="Inactive"
         )
     return current_user
-
-
-def get_hashed_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-
-def verify_password(password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(password, hashed_password)
-
-
-def create_access_token(data: dict, time_delta: Optional[timedelta]):
-    to_encode = data.copy()
-
-    expire = datetime.utcnow() + time_delta
-
-    to_encode.update(
-        {"exp": expire}
-    )
-    return jwt.encode(
-        to_encode, settings.SECRET_KEY, algorithm=TOKEN_ENCODING_ALGORITHM
-    )

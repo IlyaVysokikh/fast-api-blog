@@ -7,15 +7,15 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 
 class BaseModel(DeclarativeBase):
-    __abstarct__ = True
+    __abstract__ = True
 
-    id: int = Column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = Column(Integer, primary_key=True, index=True)
 
-    created_at: datetime = Column(
+    created_at: Mapped[datetime] = Column(
         TIMESTAMP(timezone=True),
         default=datetime.now()
     )
-    updated_at: datetime = Column(
+    updated_at: Mapped[datetime] = Column(
         TIMESTAMP(timezone=True),
         default=datetime.now(),
         onupdate=datetime.now()

@@ -1,6 +1,6 @@
-from typing import Any, Optional
+from typing import Any
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, validator
 
 
 class UserBase(BaseModel):
@@ -13,21 +13,21 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
-    @field_validator("username")
-    def validate_username(cls: Any, username: str, **kwargs: Any) -> str:
+    @validator("username")
+    def validate_username(cls: Any, username: str) -> str:
         if len(username) < 3:
             raise ValueError("username cannot be shorter than 3 characters")
         return username
 
-    @field_validator("email")
-    def validate_email(cls: Any, email: str, **kwargs: Any) -> str:
+    @validator("email")
+    def validate_email(cls: Any, email: str) -> str:
         if len(email) == 0:
             raise ValueError("An email is required")
         return email
 
 
 class User(UserBase):
-    id: Optional[int] = None
+    id: int = None
 
     class Config:
         orm_mode: bool = True
@@ -42,7 +42,7 @@ class Users(User):
 
 
 class UserUpdate(UserBase):
-    password: Optional[str]
+    password: str
 
     class Config:
         orm_mode: bool = True
